@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Delete Property</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .delete-container {
+            max-width: 450px;
+            margin: 40px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #cccccc;
+        }
+
+        .delete-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .delete-container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .delete-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 18px;
+            box-sizing: border-box;
+        }
+
+        .delete-container button {
+            width: 100%;
+            padding: 12px;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 18px;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="delete-container">
+
+        <h2>Delete Property</h2>
+
+        <p>
+            Enter the Property ID of the record you want to delete.
+            This action cannot be undone.
+        </p>
+
+        <form id="deleteForm">
+
+            <label for="property_id">Property ID</label>
+
+            <input
+                type="number"
+                id="property_id"
+                name="property_id"
+                min="1"
+                step="1"
+                placeholder="Enter Property ID"
+                required
+            >
+
+            <button type="submit">Delete Property</button>
+
+        </form>
+
+        <p id="result" role="status"></p>
+
+        <a class="back-link" href="index.html">
+            Back to Home
+        </a>
+
+    </div>
+
+    <script>
+        const form = document.getElementById("deleteForm");
+        const result = document.getElementById("result");
+
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("property_id").value.trim();
+
+            if (!/^[1-9]\d*$/.test(id)) {
+                result.textContent = "Please enter a valid Property ID.";
+                return;
+            }
+
+            const confirmed = confirm(
+                "Are you sure you want to permanently delete Property ID "
+                + id + "?"
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            result.textContent = "Deleting property...";
+
+            try {
+                const response = await fetch("/delete-property", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded;charset=UTF-8"
+                    },
+                    body: new URLSearchParams({
+                        property_id: id
+                    }).toString()
+                });
+
+                const message = await response.text();
+
+                result.textContent = message;
+
+                if (response.ok) {
+                    form.reset();
+                }
+
+            } catch (error) {
+                result.textContent =
+                    "Unable to contact the server. Check that Java server is running.";
+            }
+        });
+    </script>
+
+</body>
+</html>

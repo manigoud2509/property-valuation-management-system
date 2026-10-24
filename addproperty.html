@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Property - Property Valuation System</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .property-form {
+            max-width: 550px;
+            margin: 30px auto;
+            padding: 24px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #00000015;
+        }
+
+        .property-form label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+
+        .property-form input,
+        .property-form select {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+        }
+
+        .property-form button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-top: 15px;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+<body>
+
+    <main class="property-form">
+        <h1>Add Property</h1>
+
+        <form id="propertyForm">
+            <label for="owner_name">Owner Name</label>
+            <input id="owner_name" name="owner_name"
+                   type="text" required maxlength="100">
+
+            <label for="property_type">Property Type</label>
+            <select id="property_type" name="property_type" required>
+                <option value="">Select property type</option>
+                <option value="Residential">Residential</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Agricultural">Agricultural</option>
+            </select>
+
+            <label for="location">Location</label>
+            <input id="location" name="location"
+                   type="text" required maxlength="150">
+
+            <label for="area">Area (sq. ft.)</label>
+            <input id="area" name="area"
+                   type="number" min="0.01" step="any" required>
+
+            <label for="rate_per_sqft">Rate per sq. ft. (₹)</label>
+            <input id="rate_per_sqft" name="rate_per_sqft"
+                   type="number" min="0.01" step="any" required>
+
+            <label for="property_age">Property Age (years)</label>
+            <input id="property_age" name="property_age"
+                   type="number" min="0" step="1" required>
+
+            <button type="submit" id="saveButton">Save Property</button>
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+
+        <p><a href="index.html">Back to Home</a></p>
+    </main>
+
+    <script>
+        const form = document.getElementById("propertyForm");
+        const message = document.getElementById("message");
+        const saveButton = document.getElementById("saveButton");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            if (!form.reportValidity()) {
+                return;
+            }
+
+            const area = Number(form.elements["area"].value);
+            const rate = Number(form.elements["rate_per_sqft"].value);
+            const age = Number(form.elements["property_age"].value);
+
+            if (!Number.isFinite(area) || area <= 0 ||
+                !Number.isFinite(rate) || rate <= 0 ||
+                !Number.isInteger(age) || age < 0) {
+                message.textContent =
+                    "Enter a positive area and rate, and a non-negative whole-number age.";
+                return;
+            }
+
+            saveButton.disabled = true;
+            message.textContent = "Saving property...";
+
+            try {
+                const response = await fetch("/save-property", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded;charset=UTF-8"
+                    },
+                    body: new URLSearchParams(new FormData(form)).toString()
+                });
+
+                const result = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(result || "Unable to save property.");
+                }
+
+                message.textContent = result;
+                form.reset();
+
+            } catch (error) {
+                message.textContent =
+                    "Could not save property: " + error.message;
+
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>

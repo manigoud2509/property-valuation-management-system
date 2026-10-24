@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Property</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Search Property</h1>
+
+    <form id="searchForm">
+        <label for="search">Enter Property ID, Owner Name, or Location:</label>
+        <input
+            type="text"
+            id="search"
+            name="search"
+            placeholder="Example: Hyderabad or Ravi or 1"
+            required
+        >
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="results"></div>
+
+    <p><a href="index.html">Back to Home</a></p>
+
+    <script>
+        document.getElementById("searchForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const search = document.getElementById("search").value.trim();
+            const results = document.getElementById("results");
+
+            results.textContent = "Searching...";
+
+            try {
+                const response = await fetch("/search-property", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({ search: search })
+                });
+
+                const html = await response.text();
+                results.innerHTML = html;
+            } catch (error) {
+                results.textContent = "Unable to search. Please check that the Java server is running.";
+            }
+        });
+    </script>
+</body>
+</html>
